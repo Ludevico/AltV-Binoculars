@@ -2,16 +2,15 @@ import * as alt from 'alt-client';
 import * as native from 'natives';
 
 
-var binActive = false;
-var binZoom = 0;
-var binRotHor = 0;
-var binRotVer = 0;
-var binDis = 0;
+var active = false;
+var zoom = 0;
+var rotationHorizontal = 0;
+var rotationVertical = 0;
 
-const binMaxHor = 40;
-const binMaxVer = 20;
-const binZoomSpeed = 0.1;
-const binMoveSpeed = 0.4;
+const maxRotationHorizontal = 40;
+const maxRotationVertical = 20;
+const zoomSpeed = 0.1;
+const moveSpeed = 0.4;
 
 var cam;
 var playerPos;
@@ -27,12 +26,12 @@ cef.on("load", () => {
 //Zum Test gerade Start mit B und Stop mit U
 alt.on("keyup", (key) => {
     if (key == 85 && alt.gameControlsEnabled()) {
-        if (binActive) {
+        if (active) {
             stopBinoculars();
         }
     }
     if (key == 66 && alt.gameControlsEnabled()) {
-        if (!binActive && !native.isPedInAnyVehicle(alt.Player.local.scriptID, true)) {
+        if (!active && !native.isPedInAnyVehicle(alt.Player.local.scriptID, true)) {
             startBinoculars();
         }
     }
@@ -40,63 +39,63 @@ alt.on("keyup", (key) => {
 
 
 //Events für Einbindung in andere Resoruces
-alt.on("startBinoculars", () => {
+alt.on("StartBinoculars", () => {
     startBinoculars();
 });
 
-alt.on("stopBinoculars", () => {
+alt.on("StopBinoculars", () => {
     stopBinoculars();
 });
 
 
 //Input Management
 alt.everyTick(() => {
-    if (binActive) {
+    if (active) {
         //INPUT_WEAPON_WHEEL_NEXT -> Mousewheel Down
         if(native.isControlPressed(0, 14)) {
-            binZoom -= binZoomSpeed;
-            if (binZoom < 0) {
-                binZoom = 0;
+            zoom -= zoomSpeed;
+            if (zoom < 0) {
+                zoom = 0;
             }
             updateCam();
         }
         //INPUT_WEAPON_WHEEL_PREV -> Mousewheel Up
         if(native.isControlPressed(0, 15)) {
-            binZoom += binZoomSpeed;
-            if (binZoom > 1) {
-                binZoom = 1;
+            zoom += zoomSpeed;
+            if (zoom > 1) {
+                zoom = 1;
             }
             updateCam();
         }
         //INPUT_MOVE_LEFT_ONLY -> A
          if(native.isControlPressed(0, 34)) {
-            binRotHor += binMoveSpeed / (4 * binZoom + 1);
-            if (binRotHor > binMaxHor) {
-                binRotHor = binMaxHor;
+            rotationHorizontal += moveSpeed / (4 * zoom + 1);
+            if (rotationHorizontal > maxRotationHorizontal) {
+                rotationHorizontal = maxRotationHorizontal;
             }
             updateCam();
         }
         //INPUT_MOVE_RIGHT_ONLY -> D
         if(native.isControlPressed(0, 35)) {
-            binRotHor -= binMoveSpeed / (4 * binZoom + 1);
-            if (binRotHor < -binMaxHor) {
-                binRotHor = -binMaxHor;
+            rotationHorizontal -= moveSpeed / (4 * zoom + 1);
+            if (rotationHorizontal < -maxRotationHorizontal) {
+                rotationHorizontal = -maxRotationHorizontal;
             }
             updateCam();
         }
         //INPUT_MOVE_UP_ONLY -> W
         if(native.isControlPressed(0, 32)) {
-            binRotVer += binMoveSpeed / (4 * binZoom + 1);
-            if (binRotVer > binMaxVer) {
-                binRotVer = binMaxVer;
+            rotationVertical += moveSpeed / (4 * zoom + 1);
+            if (rotationVertical > maxRotationVertical) {
+                rotationVertical = maxRotationVertical;
             }
             updateCam();
         }
         //INPUT_MOVE_DOWN_ONLY -> S
         if(native.isControlPressed(0, 33)) {
-            binRotVer -= binMoveSpeed / (4 * binZoom + 1);
-            if (binRotVer < -binMaxVer) {
-                binRotVer = -binMaxVer;
+            rotationVertical -= moveSpeed / (4 * zoom + 1);
+            if (rotationVertical < -maxRotationVertical) {
+                rotationVertical = -maxRotationVertical;
             }
             updateCam();
         }
@@ -106,8 +105,8 @@ alt.everyTick(() => {
 });
 
 function startBinoculars() {
-    if (!binActive) {
-        binActive = true;
+    if (!active) {
+        active = true;
         cef.isVisible = true;
 
         //Disable Mini Map
@@ -129,11 +128,11 @@ function startBinoculars() {
 }
 
 function stopBinoculars() {
-    if (binActive) {
-        binActive = false;
-        binZoom = 0;
-        binRotHor = 0;
-        binRotVer = 0;
+    if (active) {
+        active = false;
+        zoom = 0;
+        rotationHorizontal = 0;
+        rotationVertical = 0;
 
         //Enable Mini Map
         native.displayRadar(true);
@@ -149,9 +148,9 @@ function stopBinoculars() {
 }
 
 function updateCam() {
-    native.setCamFov(cam, 45 - 40 * binZoom);
-    native.setCamRot(cam, 0 + binRotVer, 0, (playerRot.z * 180 / Math.PI) + binRotHor, 2);
-    cef.emit("updateZoom", [binZoom]);
+    native.setCamFov(cam, 45 - 40 * zoom);
+    native.setCamRot(cam, 0 + rotationVertical, 0, (playerRot.z * 180 / Math.PI) + rotationHorizontal, 2);
+    cef.emit("UpdateZoom", [zoom]);
 }
 
 function playAnimation(dict, name, duration, flag, speed) {
@@ -159,7 +158,6 @@ function playAnimation(dict, name, duration, flag, speed) {
     var maxWait = 0;
     while(!native.hasAnimDictLoaded(dict)) {
         if (maxWait >= 10) {
-            alt.emitServer("fail");
             return;
         }
         setTimeout(()=>{}, 100);
