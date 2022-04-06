@@ -113,13 +113,16 @@ function startBinoculars() {
         //Disable Mini Map
         native.displayRadar(false);
 
+        //Player invisible locally
+        native.setEntityAlpha(alt.Player.local.scriptID, 0, false);
+
         playAnimation("oddjobs@hunter", "binoculars_loop", -1, 1, 1.0);
         playerPos = alt.Player.local.pos;
         playerRot = alt.Player.local.rot;
 
         var camPos = playerPos + alt.Player.local.pos.forward * 2;
         cam = native.createCam("DEFAULT_SCRIPTED_CAMERA",true); 
-        native.setCamCoord(cam, playerPos.x, playerPos.y, playerPos.z + 1);
+        native.setCamCoord(cam, playerPos.x, playerPos.y, playerPos.z + 0.7);
         updateCam();
         native.renderScriptCams(true, false, 0, 0, 0, 0);
     } 
@@ -134,6 +137,9 @@ function stopBinoculars() {
 
         //Enable Mini Map
         native.displayRadar(true);
+
+        //Player invisible locally
+        native.setEntityAlpha(alt.Player.local.scriptID, 255, false);
 
         cef.isVisible = false;
         stopAnimation();
